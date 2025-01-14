@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,6 +16,15 @@
       font: 12px sans-serif;
       fill: #333;
     }
+    .node:hover circle {
+      fill: #ff6347;
+      stroke: none;
+    }
+    .node:hover text {
+      fill: #fff;
+      font: 15px sans-serif;
+    }
+
     .link {
       fill: none;
       stroke: #8da0cb;
@@ -22,13 +32,15 @@
     }
   </style>
 </head>
+
 <body>
   <div>
     <label for="nodeInput">Enter a number to add to the tree:</label>
-    <input type="number" id="nodeInput" />
-    <button onclick="addNode()">Add Node</button>
+    <input type="number" id="nodeInput" onkeydown="if(event.key === 'Enter' || event.key === ' ') addNode()"/>
+    <button onclick="addNode()" >Add Node</button>
   </div>
   <div id="tree"></div>
   <script src="visualize-avl.js"></script>
 </body>
+
 </html>
