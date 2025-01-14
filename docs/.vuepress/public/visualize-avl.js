@@ -14,6 +14,7 @@ class AVLTree {
   }
 
   height(node) {
+    console.log('height called');
     return node ? node.height : 0;
   }
 
@@ -32,13 +33,13 @@ class AVLTree {
   }
 
   rotateLeft(x) {
-    const y = x.right;
-    const T2 = y.left;
-    y.left = x;
-    x.right = T2;
+    const newX = x.right;
+    const T2 = newX.left; // T2 是 > oldX, 但是 < newX的部分
+    newX.left = x;
+    x.right = T2; // 重新连接 T2 到 oldX 的右边，是因为 T2 > oldX
     this.updateHeight(x);
-    this.updateHeight(y);
-    return y;
+    this.updateHeight(newX);
+    return newX;
   }
 
   getBalanceFactor(node) {
@@ -57,19 +58,29 @@ class AVLTree {
     }
 
     this.updateHeight(node);
-    const balance = this.getBalanceFactor(node);
+    // const balance = this.getBalanceFactor(node); // left - right
+    const lh = this.height(node.left);
+    const rh = this.height(node.right);
 
-    if (balance > 1 && key < node.left.key) return this.rotateRight(node);
-    if (balance < -1 && key > node.right.key) return this.rotateLeft(node);
-    if (balance > 1 && key > node.left.key) {
-      node.left = this.rotateLeft(node.left);
-      return this.rotateRight(node);
+    if (Math.abs(lh - rh) == 1) {
+      return node;
+    } else {
+      if (lh > rh) {
+        if (key < node.left.key) { // 左左情况
+          return this.rotateRight(node);
+        } else if (key > node.left.key) { // 左右情况
+          node.left = this.rotateLeft(node.left);
+          return this.rotateRight(node);
+        }
+      } else if (lh < rh) {
+        if (key > node.right.key) { // 右右情况
+          return this.rotateLeft(node);
+        } else if (key < node.right.key) { // 右左情况
+          node.right = this.rotateRight(node.right);
+          return this.rotateLeft(node);
+        }
+      }
     }
-    if (balance < -1 && key < node.right.key) {
-      node.right = this.rotateRight(node.right);
-      return this.rotateLeft(node);
-    }
-
     return node;
   }
 
@@ -122,8 +133,6 @@ function update(root) {
     .attr("transform", d => `translate(${d.x}, ${d.y})`);
   node.exit().remove();
 }
-
-
 
 
 // Function to handle adding nodes from input field
