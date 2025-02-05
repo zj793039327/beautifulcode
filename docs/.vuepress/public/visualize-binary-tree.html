@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        .tree-container {
+            position: relative;
+            min-height: 400px;
+            margin: 20px;
+        }
+
+        .node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-family: Arial;
+            transition: all 0.3s;
+        }
+
+        .line {
+            position: absolute;
+            background: #ccc;
+            transform-origin: top left;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <input type="text" id="treeInput" placeholder="输入数组，如：1,2,3,null,4" style="width: 300px">
+        <button onclick="drawTree()">生成二叉树</button>
+    </div>
+    <div id="treeContainer" class="tree-container"></div>
+
+    <script>
+        class TreeNode {
+            constructor(val) {
+                this.val = val;
+                this.left = null;
+                this.right = null;
+                this.x = 0;  // 节点横坐标
+                this.y = 0;  // 节点纵坐标
+            }
+        }
+        const NODE_RADIUS = 20;
+
+        // 将数组转换为二叉树
+        function arrayToTree(arr) {
+            if (!arr || arr.length === 0) return null;
+            
+            const root = new TreeNode(arr[0]);
+            const queue = [root];
+            let i = 1;
+            
+            while (i < arr.length) {
+                const current = queue.shift();
+                
+                if (arr[i] !== null && arr[i] !== undefined) {
+                    current.left = new TreeNode(arr[i]);
+                    queue.push(current.left);
+                }
+                i++;
+                
+                if (i < arr.length && arr[i] !== null && arr[i] !== undefined) {
+                    current.right = new TreeNode(arr[i]);
+                    queue.push(current.right);
+                }
+                i++;
+            }
+            return root;
+        }
+
+        // 计算节点位置
+        function calculatePositions(root) {
+            const positions = [];
+            let maxDepth = 0;
+            
+            function dfs(node, depth, pos) {
+                if (!node) return;
+                
+                maxDepth = Math.max(maxDepth, depth);
+                node.y = depth * 100;  // 垂直间距
+                
+                // 水平位置计算
+                const offset = 2 ** (maxDepth - depth);
+                node.x = pos * offset * (NODE_RADIUS*2) + (offset * NODE_RADIUS);
+                
+                positions.push(node);
+                dfs(node.left, depth + 1, pos * 2);
+                dfs(node.right, depth + 1, pos * 2 + 1);
+            }
+            
+            dfs(root, 0, 0);
+            return { root, maxDepth, positions };
+        }
+
+        // 绘制二叉树
+        function drawTree() {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+            
+            // 解析输入
+            var input = document.getElementById('treeInput').value;
+            // 如果input 包含 中括号，那么需要删除中括号
+            if (input.includes('[') && input.includes(']')) {
+                input = input.replaceAll('[', '');
+                input = input.replaceAll(']', '');
+            }
+            // console.log(input);
+            const arr = input.split(',').map(item => {
+                const num = item.trim();
+                return num === 'null' ? null : Number(num);
+            });
+            
+            // 创建树结构
+            const root = arrayToTree(arr);
+            if (!root) return;
+            
+            // 计算布局
+            const { positions, maxDepth } = calculatePositions(root);
+            container.style.height = `${(maxDepth + 1) * 100}px`;
+            
+            // 绘制连线
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            container.appendChild(svg);
+            
+            // 创建节点和连线
+            positions.forEach(node => {
+                if (!node) return;
+                
+                // 创建节点
+                const div = document.createElement('div');
+                div.className = 'node';
+                div.style.left = `${node.x}px`;
+                div.style.top = `${node.y}px`;
+                div.textContent = node.val;
+                container.appendChild(div);
+                
+                // 绘制到子节点的连线
+                [node.left, node.right].forEach(child => {
+                    if (!child) return;
+                    
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', node.x + NODE_RADIUS);
+                    line.setAttribute('y1', node.y + NODE_RADIUS*2);
+                    line.setAttribute('x2', child.x + NODE_RADIUS);
+                    line.setAttribute('y2', child.y);
+                    line.setAttribute('stroke', '#ccc');
+                    line.setAttribute('stroke-width', '2');
+                    svg.appendChild(line);
+                });
+            });
+        }
+    </script>
+</body>
+</html>
