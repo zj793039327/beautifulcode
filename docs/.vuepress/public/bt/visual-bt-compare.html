@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .control-panel {
+      margin: 10px;
+    }
+
+    .container {
+      display: flex;
+      width: 90%;
+      gap: 20px;
+    }
+
+    .tree-panel {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid #ddd;
+      padding: 10px;
+    }
+
+    .tree-container {
+      position: relative;
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ccc;
+      margin-top: 10px;
+      overflow: auto;
+    }
+
+    .node {
+      position: absolute;
+      border: 2px solid #4CAF50;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .node.highlight {
+      background: yellow;
+    }
+
+    .node.different {
+      border-color: red;
+      color: red;
+    }
+
+    .line {
+      position: absolute;
+      background: #ccc;
+      transform-origin: top left;
+    }
+
+    .input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+
+    input[type="text"] {
+      width: 200px;
+      padding: 5px;
+    }
+
+    button {
+      padding: 5px 10px;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 控制面板：节点大小滚动条 -->
+  <div class="control-panel">
+    <label for="nodeSizeSlider">节点大小（半径）：</label>
+    <input type="range" id="nodeSizeSlider" min="10" max="60" value="20" oninput="adjustNodeSize(this.value)">
+    <span id="nodeSizeValue">20</span>px
+  </div>
+
+  <div class="container">
+    <!-- 树 1 面板 -->
+    <div class="tree-panel">
+      <h3>树 1</h3>
+      <div class="input-box">
+        <input type="text" id="treeInput1" placeholder="输入数组，如：1,2,3,null,4">
+        <button onclick="drawTree('treeContainer1', 'treeInput1', true)">生成</button>
+      </div>
+      <div id="treeContainer1" class="tree-container"></div>
+    </div>
+
+    <!-- 树 2 面板 -->
+    <div class="tree-panel">
+      <h3>树 2</h3>
+      <div class="input-box">
+        <input type="text" id="treeInput2" placeholder="输入数组，如：1,2,3,null,4">
+        <button onclick="drawTree('treeContainer2', 'treeInput2', false)">生成</button>
+      </div>
+      <div id="treeContainer2" class="tree-container"></div>
+    </div>
+  </div>
+
+  <script>
+    // 定义二叉树节点
+    class TreeNode {
+      constructor(val) {
+        this.val = val;
+        this.left = null;
+        this.right = null;
+        this.x = 0;
+        this.y = 0;
+      }
+    }
+
+    // 全局变量：节点半径，以及水平和垂直间距倍率
+    let NODE_RADIUS = 20;
+    let horizontalMultiplier = 2; // 水平间距 = NODE_RADIUS * horizontalMultiplier
+    let verticalMultiplier = 3;   // 垂直间距 = NODE_RADIUS * verticalMultiplier
+
+    let firstTreeValues = new Set(); // 存储第一棵树的所有节点值
+
+    // 数组转二叉树（层序构建）
+    function arrayToTree(arr) {
+      if (!arr || arr.length === 0) return null;
+
+      const root = new TreeNode(arr[0]);
+      const queue = [root];
+      let i = 1;
+
+      while (i < arr.length) {
+        const current = queue.shift();
+
+        if (arr[i] !== null && arr[i] !== undefined) {
+          current.left = new TreeNode(arr[i]);
+          queue.push(current.left);
+        }
+        i++;
+
+        if (i < arr.length && arr[i] !== null && arr[i] !== undefined) {
+          current.right = new TreeNode(arr[i]);
+          queue.push(current.right);
+        }
+        i++;
+      }
+      return root;
+    }
+
+    // 采用中序遍历计算节点位置
+    // 根据当前 NODE_RADIUS，动态计算水平与垂直间距
+    function calculatePositions(root) {
+      let currentX = 0;
+      function dfs(node, depth) {
+        if (!node) return;
+        dfs(node.left, depth + 1);
+        node.x = currentX * (NODE_RADIUS * horizontalMultiplier);
+        node.y = depth * (NODE_RADIUS * verticalMultiplier);
+        currentX++;
+        dfs(node.right, depth + 1);
+      }
+      dfs(root, 0);
+    }
+
+    // 绘制二叉树，isFirstTree为true表示绘制第一棵树
+    function drawTree(containerId, inputId, isFirstTree) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = ''; // 清空容器
+
+      // 处理输入，去除中括号并解析
+      let input = document.getElementById(inputId).value.replace(/[\[\]]/g, '');
+      const arr = input.split(',').map(item => item.trim() === 'null' ? null : Number(item));
+
+      const root = arrayToTree(arr);
+      if (!root) return;
+
+      calculatePositions(root);
+
+      // 创建 SVG 用于绘制连线
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      container.appendChild(svg);
+
+      // 如果是第一棵树，则记录所有节点值
+      if (isFirstTree) {
+        firstTreeValues.clear();
+        function storeValues(node) {
+          if (!node) return;
+          firstTreeValues.add(node.val);
+          storeValues(node.left);
+          storeValues(node.right);
+        }
+        storeValues(root);
+      }
+
+      // 递归绘制节点和连线
+      function drawNode(node) {
+        if (!node) return;
+
+        // 创建节点元素
+        const div = document.createElement('div');
+        div.className = 'node';
+        div.style.width = `${NODE_RADIUS * 2}px`;
+        div.style.height = `${NODE_RADIUS * 2}px`;
+        div.style.left = `${node.x}px`;
+        div.style.top = `${node.y}px`;
+        div.textContent = node.val;
+
+        // 对于第二棵树，如果节点值不在第一棵树中，则标记为红色
+        if (!isFirstTree && !firstTreeValues.has(node.val)) {
+          div.classList.add('different');
+        }
+
+        // 点击节点时高亮显示所有值相同的节点
+        div.addEventListener('click', () => highlightMatchingNodes(node.val));
+        container.appendChild(div);
+
+        // 绘制连线连接到左右子节点
+        [node.left, node.right].forEach(child => {
+          if (child) {
+            const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+            line.setAttribute('x1', node.x + NODE_RADIUS);
+            line.setAttribute('y1', node.y + NODE_RADIUS * 2);
+            line.setAttribute('x2', child.x + NODE_RADIUS);
+            line.setAttribute('y2', child.y);
+            line.setAttribute('stroke', '#ccc');
+            line.setAttribute('stroke-width', '2');
+            svg.appendChild(line);
+          }
+        });
+
+        drawNode(node.left);
+        drawNode(node.right);
+      }
+
+      drawNode(root);
+    }
+
+    // 高亮所有与传入值相同的节点
+    function highlightMatchingNodes(value) {
+      document.querySelectorAll('.node').forEach(node => {
+        if (node.textContent == value) {
+          node.classList.add('highlight');
+        } else {
+          node.classList.remove('highlight');
+        }
+      });
+    }
+
+    // 当节点大小变化时，同时动态调整节点间距，并重新绘制树
+    function adjustNodeSize(newSize) {
+      NODE_RADIUS = parseInt(newSize, 10);
+      document.getElementById('nodeSizeValue').textContent = NODE_RADIUS;
+      // 重新生成两棵树（如果输入框不为空）
+      const treeInput1 = document.getElementById('treeInput1');
+      if (treeInput1.value.trim() !== "") {
+        drawTree('treeContainer1', 'treeInput1', true);
+      }
+      const treeInput2 = document.getElementById('treeInput2');
+      if (treeInput2.value.trim() !== "") {
+        drawTree('treeContainer2', 'treeInput2', false);
+      }
+    }
+  </script>
+</body>
+
+</html>
