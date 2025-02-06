@@ -2,18 +2,54 @@
 <html>
 <head>
   <style>
+    /* 整体页面布局：左侧侧边栏 + 右侧主区域 */
     body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
       margin: 0;
       font-family: Arial, sans-serif;
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* 左侧侧边栏 */
+    .sidebar {
+      width: 200px;
+      background-color: #333;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+    .sidebar h3 {
+      text-align: center;
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+    .sidebar button {
+      background-color: #444;
+      color: #fff;
+      border: none;
+      padding: 10px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .sidebar button:hover {
+      background-color: #555;
+    }
+
+    /* 右侧主区域，包含树的展示 */
+    .main-content {
+      flex: 1;
+      overflow: auto;
+      padding: 10px;
+      position: relative;
     }
 
     .container {
       display: flex;
       gap: 20px;
-      margin-bottom: 50px; /* 留出空间给右下角面板 */
+      margin-bottom: 50px; /* 为右下角设置面板留出空间 */
     }
 
     .tree-panel {
@@ -25,7 +61,7 @@
       padding: 10px;
     }
 
-    /* 固定容器尺寸，超出部分显示滚动条 */
+    /* 固定尺寸的树容器，内容超出时显示滚动条 */
     .tree-container {
       position: relative;
       width: 500px;
@@ -35,6 +71,21 @@
       overflow: auto;
     }
 
+    .input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+    input[type="text"] {
+      width: 200px;
+      padding: 5px;
+    }
+    button {
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    /* 节点及连线样式 */
     .node {
       position: absolute;
       border: 2px solid #4CAF50;
@@ -47,38 +98,20 @@
       cursor: pointer;
       transition: all 0.3s;
     }
-
     .node.highlight {
       background: yellow;
     }
-
     .node.different {
       border-color: red;
       color: red;
     }
-
     .line {
       position: absolute;
       background: #ccc;
       transform-origin: top left;
     }
 
-    .input-box {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 5px;
-    }
-
-    input[type="text"] {
-      width: 200px;
-      padding: 5px;
-    }
-
-    button {
-      padding: 5px 10px;
-    }
-
-    /* 右下角设置面板 */
+    /* 右下角折叠式设置面板 */
     .settings-panel {
       position: fixed;
       bottom: 10px;
@@ -91,8 +124,6 @@
       width: 240px;
       transition: transform 0.3s;
     }
-
-    /* 折叠状态，仅显示标题 */
     .settings-panel.collapsed .settings-content {
       display: none;
     }
@@ -106,52 +137,65 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- 树 1 面板 -->
-    <div class="tree-panel">
-      <h3>树 1</h3>
-      <div class="input-box">
-        <input type="text" id="treeInput1" placeholder="输入数组，如：1,2,3,null,4">
-        <button onclick="drawTree('treeContainer1', 'treeInput1', true)">生成</button>
-      </div>
-      <div id="treeContainer1" class="tree-container"></div>
-    </div>
-
-    <!-- 树 2 面板 -->
-    <div class="tree-panel">
-      <h3>树 2</h3>
-      <div class="input-box">
-        <input type="text" id="treeInput2" placeholder="输入数组，如：1,2,3,null,4">
-        <button onclick="drawTree('treeContainer2', 'treeInput2', false)">生成</button>
-      </div>
-      <div id="treeContainer2" class="tree-container"></div>
-    </div>
+  <!-- 左侧侧边栏 -->
+  <div class="sidebar">
+    <h3>操作菜单</h3>
+    <!-- 按钮1：重新生成右侧树 -->
+    <button onclick="rebuildRightTree()">重新生成右侧树</button>
+    <!-- 其他操作按钮，可根据需要增加 -->
+    <button onclick="clearRightTree()">清空右侧树</button>
+    <button onclick="alert('其他操作')">其他操作</button>
   </div>
 
-  <!-- 右下角折叠式设置面板，用于调整节点大小及间距 -->
-  <div class="settings-panel" id="settingsPanel">
-    <div class="settings-header" onclick="toggleSettings()">
-      设置面板 &#9660;
+  <!-- 右侧主区域 -->
+  <div class="main-content">
+    <div class="container">
+      <!-- 树 1 面板 -->
+      <div class="tree-panel">
+        <h3>树 1</h3>
+        <div class="input-box">
+          <input type="text" id="treeInput1" placeholder="输入数组，如：1,2,3,null,4">
+          <button onclick="drawTree('treeContainer1', 'treeInput1', true)">生成</button>
+        </div>
+        <div id="treeContainer1" class="tree-container"></div>
+      </div>
+  
+      <!-- 树 2 面板 -->
+      <div class="tree-panel">
+        <h3>树 2</h3>
+        <div class="input-box">
+          <input type="text" id="treeInput2" placeholder="输入数组，如：1,2,3,null,4">
+          <button onclick="drawTree('treeContainer2', 'treeInput2', false)">生成</button>
+        </div>
+        <div id="treeContainer2" class="tree-container"></div>
+      </div>
     </div>
-    <div class="settings-content" id="settingsContent">
-      <div>
-        <label for="nodeSizeSlider">节点大小（半径）:</label><br>
-        <input type="range" id="nodeSizeSlider" min="10" max="60" value="20" oninput="updateSettings()">
-        <span id="nodeSizeValue">20</span>px
+  
+    <!-- 右下角折叠设置面板 -->
+    <div class="settings-panel" id="settingsPanel">
+      <div class="settings-header" onclick="toggleSettings()">
+        设置面板 &#9660;
       </div>
-      <div style="margin-top: 10px;">
-        <label for="horizontalSlider">水平间距倍率:</label><br>
-        <input type="range" id="horizontalSlider" min="1" max="10" value="4" oninput="updateSettings()">
-        <span id="horizontalValue">4</span>
-      </div>
-      <div style="margin-top: 10px;">
-        <label for="verticalSlider">垂直间距倍率:</label><br>
-        <input type="range" id="verticalSlider" min="1" max="10" value="5" oninput="updateSettings()">
-        <span id="verticalValue">5</span>
+      <div class="settings-content" id="settingsContent">
+        <div>
+          <label for="nodeSizeSlider">节点大小（半径）:</label><br>
+          <input type="range" id="nodeSizeSlider" min="10" max="60" value="20" oninput="updateSettings()">
+          <span id="nodeSizeValue">20</span>px
+        </div>
+        <div style="margin-top: 10px;">
+          <label for="horizontalSlider">水平间距倍率:</label><br>
+          <input type="range" id="horizontalSlider" min="1" max="10" value="4" oninput="updateSettings()">
+          <span id="horizontalValue">4</span>
+        </div>
+        <div style="margin-top: 10px;">
+          <label for="verticalSlider">垂直间距倍率:</label><br>
+          <input type="range" id="verticalSlider" min="1" max="10" value="5" oninput="updateSettings()">
+          <span id="verticalValue">5</span>
+        </div>
       </div>
     </div>
   </div>
-
+  
   <script>
     // 定义二叉树节点
     class TreeNode {
@@ -163,14 +207,14 @@
         this.y = 0;
       }
     }
-
+    
     // 全局变量：节点半径，以及水平、垂直间距倍率
     let NODE_RADIUS = 20;
-    let horizontalMultiplier = 4; // 默认水平间距倍率
-    let verticalMultiplier = 5;   // 默认垂直间距倍率
-
-    let firstTreeValues = new Set(); // 存储第一棵树所有节点值
-
+    let horizontalMultiplier = 4;
+    let verticalMultiplier = 5;
+    
+    let firstTreeValues = new Set(); // 存储第一棵树的所有节点值
+    
     // 数组转二叉树（层序构建）
     function arrayToTree(arr) {
       if (!arr || arr.length === 0) return null;
@@ -192,7 +236,7 @@
       }
       return root;
     }
-
+    
     // 采用中序遍历计算节点位置，依据当前 NODE_RADIUS 与间距倍率
     function calculatePositions(root) {
       let currentX = 0;
@@ -206,7 +250,7 @@
       }
       dfs(root, 0);
     }
-
+    
     // 计算树所有节点的边界，用于设置 SVG 的尺寸和 viewBox
     function computeBounds(root) {
       let maxX = 0, maxY = 0;
@@ -223,28 +267,27 @@
         height: maxY + NODE_RADIUS * 2
       };
     }
-
-    // 绘制二叉树，isFirstTree为true表示绘制第一棵树
+    
+    // 绘制二叉树，isFirstTree 为 true 表示绘制第一棵树
     function drawTree(containerId, inputId, isFirstTree) {
       const container = document.getElementById(containerId);
       container.innerHTML = ''; // 清空容器
-
-      // 解析输入数组（去除中括号）
+      
       let input = document.getElementById(inputId).value.replace(/[\[\]]/g, '');
       const arr = input.split(',').map(item => item.trim() === 'null' ? null : Number(item));
       const root = arrayToTree(arr);
       if (!root) return;
-
+      
       calculatePositions(root);
       const bounds = computeBounds(root);
-
+      
       // 创建 SVG 用于绘制连线
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
       svg.style.width = bounds.width + 'px';
       svg.style.height = bounds.height + 'px';
       svg.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`);
       container.appendChild(svg);
-
+      
       // 若为第一棵树，则记录所有节点值
       if (isFirstTree) {
         firstTreeValues.clear();
@@ -256,11 +299,11 @@
         }
         storeValues(root);
       }
-
+      
       // 递归绘制节点及连线
       function drawNode(node) {
         if (!node) return;
-
+    
         const div = document.createElement('div');
         div.className = 'node';
         div.style.width = `${NODE_RADIUS * 2}px`;
@@ -268,15 +311,15 @@
         div.style.left = `${node.x}px`;
         div.style.top = `${node.y}px`;
         div.textContent = node.val;
-
+    
         // 对于第二棵树，不存在于第一棵树的节点标记为红色
         if (!isFirstTree && !firstTreeValues.has(node.val)) {
           div.classList.add('different');
         }
-
+    
         div.addEventListener('click', () => highlightMatchingNodes(node.val));
         container.appendChild(div);
-
+    
         [node.left, node.right].forEach(child => {
           if (child) {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -294,7 +337,7 @@
       }
       drawNode(root);
     }
-
+    
     // 高亮所有与传入值相同的节点
     function highlightMatchingNodes(value) {
       document.querySelectorAll('.node').forEach(node => {
@@ -305,17 +348,17 @@
         }
       });
     }
-
-    // 更新所有设置（节点大小、水平与垂直间距），并重绘两棵树（如果输入数据存在）
+    
+    // 更新设置（节点大小、水平和垂直间距），重绘两棵树（如果输入框有数据）
     function updateSettings() {
       NODE_RADIUS = parseInt(document.getElementById('nodeSizeSlider').value, 10);
       horizontalMultiplier = parseFloat(document.getElementById('horizontalSlider').value);
       verticalMultiplier = parseFloat(document.getElementById('verticalSlider').value);
-
+    
       document.getElementById('nodeSizeValue').textContent = NODE_RADIUS;
       document.getElementById('horizontalValue').textContent = horizontalMultiplier;
       document.getElementById('verticalValue').textContent = verticalMultiplier;
-
+    
       const treeInput1 = document.getElementById('treeInput1');
       if (treeInput1.value.trim() !== "") {
         drawTree('treeContainer1', 'treeInput1', true);
@@ -325,7 +368,22 @@
         drawTree('treeContainer2', 'treeInput2', false);
       }
     }
-
+    
+    // 左侧菜单：重新生成右侧树（若右侧输入框有数据）
+    function rebuildRightTree() {
+      const treeInput2 = document.getElementById('treeInput2');
+      if (treeInput2.value.trim() !== "") {
+        drawTree('treeContainer2', 'treeInput2', false);
+      } else {
+        alert("请在右侧树输入框中输入数组数据！");
+      }
+    }
+    
+    // 左侧菜单：清空右侧树
+    function clearRightTree() {
+      document.getElementById('treeContainer2').innerHTML = "";
+    }
+    
     // 折叠/展开右下角设置面板
     function toggleSettings() {
       const panel = document.getElementById('settingsPanel');
