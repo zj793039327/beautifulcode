@@ -17,7 +17,6 @@
 
     .container {
       display: flex;
-      width: 90%;
       gap: 20px;
     }
 
@@ -30,13 +29,17 @@
       padding: 10px;
     }
 
+    /* 固定容器尺寸，不随内部内容扩展 */
     .tree-container {
       position: relative;
-      width: 100%;
+      width: 600px;
+      /* 固定宽度 */
       height: 400px;
+      /* 固定高度 */
       border: 1px solid #ccc;
       margin-top: 10px;
       overflow: auto;
+      /* 超出部分出现滚动条 */
     }
 
     .node {
@@ -115,7 +118,6 @@
   </div>
 
   <script>
-    // 定义二叉树节点
     class TreeNode {
       constructor(val) {
         this.val = val;
@@ -136,20 +138,16 @@
     // 数组转二叉树（层序构建）
     function arrayToTree(arr) {
       if (!arr || arr.length === 0) return null;
-
       const root = new TreeNode(arr[0]);
       const queue = [root];
       let i = 1;
-
       while (i < arr.length) {
         const current = queue.shift();
-
         if (arr[i] !== null && arr[i] !== undefined) {
           current.left = new TreeNode(arr[i]);
           queue.push(current.left);
         }
         i++;
-
         if (i < arr.length && arr[i] !== null && arr[i] !== undefined) {
           current.right = new TreeNode(arr[i]);
           queue.push(current.right);
@@ -159,8 +157,6 @@
       return root;
     }
 
-    // 采用中序遍历计算节点位置
-    // 根据当前 NODE_RADIUS，动态计算水平与垂直间距
     function calculatePositions(root) {
       let currentX = 0;
       function dfs(node, depth) {
@@ -174,27 +170,42 @@
       dfs(root, 0);
     }
 
-    // 绘制二叉树，isFirstTree为true表示绘制第一棵树
+    // 计算所有节点的最大边界，不用于改变容器尺寸，而是给 SVG 设置尺寸
+    function computeBounds(root) {
+      let maxX = 0, maxY = 0;
+      function traverse(node) {
+        if (!node) return;
+        maxX = Math.max(maxX, node.x);
+        maxY = Math.max(maxY, node.y);
+        traverse(node.left);
+        traverse(node.right);
+      }
+      traverse(root);
+      return {
+        width: maxX + NODE_RADIUS * 2,
+        height: maxY + NODE_RADIUS * 2
+      };
+    }
+
     function drawTree(containerId, inputId, isFirstTree) {
       const container = document.getElementById(containerId);
-      container.innerHTML = ''; // 清空容器
+      container.innerHTML = '';
 
-      // 处理输入，去除中括号并解析
       let input = document.getElementById(inputId).value.replace(/[\[\]]/g, '');
       const arr = input.split(',').map(item => item.trim() === 'null' ? null : Number(item));
-
       const root = arrayToTree(arr);
       if (!root) return;
 
       calculatePositions(root);
+      const bounds = computeBounds(root);
 
-      // 创建 SVG 用于绘制连线
+      // 创建 SVG，并设置尺寸和 viewBox，内部内容可能超出容器，但容器保持固定尺寸
       const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.style.width = '100%';
-      svg.style.height = '100%';
+      svg.style.width = bounds.width + 'px';
+      svg.style.height = bounds.height + 'px';
+      svg.setAttribute('viewBox', `0 0 ${bounds.width} ${bounds.height}`);
       container.appendChild(svg);
 
-      // 如果是第一棵树，则记录所有节点值
       if (isFirstTree) {
         firstTreeValues.clear();
         function storeValues(node) {
@@ -206,11 +217,9 @@
         storeValues(root);
       }
 
-      // 递归绘制节点和连线
       function drawNode(node) {
         if (!node) return;
 
-        // 创建节点元素
         const div = document.createElement('div');
         div.className = 'node';
         div.style.width = `${NODE_RADIUS * 2}px`;
@@ -219,16 +228,13 @@
         div.style.top = `${node.y}px`;
         div.textContent = node.val;
 
-        // 对于第二棵树，如果节点值不在第一棵树中，则标记为红色
         if (!isFirstTree && !firstTreeValues.has(node.val)) {
           div.classList.add('different');
         }
 
-        // 点击节点时高亮显示所有值相同的节点
         div.addEventListener('click', () => highlightMatchingNodes(node.val));
         container.appendChild(div);
 
-        // 绘制连线连接到左右子节点
         [node.left, node.right].forEach(child => {
           if (child) {
             const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -245,11 +251,9 @@
         drawNode(node.left);
         drawNode(node.right);
       }
-
       drawNode(root);
     }
 
-    // 高亮所有与传入值相同的节点
     function highlightMatchingNodes(value) {
       document.querySelectorAll('.node').forEach(node => {
         if (node.textContent == value) {
@@ -260,11 +264,9 @@
       });
     }
 
-    // 当节点大小变化时，同时动态调整节点间距，并重新绘制树
     function adjustNodeSize(newSize) {
       NODE_RADIUS = parseInt(newSize, 10);
       document.getElementById('nodeSizeValue').textContent = NODE_RADIUS;
-      // 重新生成两棵树（如果输入框不为空）
       const treeInput1 = document.getElementById('treeInput1');
       if (treeInput1.value.trim() !== "") {
         drawTree('treeContainer1', 'treeInput1', true);
