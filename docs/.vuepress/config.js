@@ -1,17 +1,17 @@
-import { defaultTheme } from '@vuepress/theme-default'
-import { defineUserConfig } from 'vuepress/cli'
 import { viteBundler } from '@vuepress/bundler-vite'
+import { defineUserConfig } from 'vuepress'
+import { plumeTheme } from 'vuepress-theme-plume'
 
 export default defineUserConfig({
-  lang: 'en-US',
+  lang: 'zh-CN',
+  title: '理解算法',
 
-  title: 'VuePress',
-  description: 'My first VuePress Site',
-
-  theme: defaultTheme({
-    logo: 'https://vuejs.press/images/hero.png',
-
-    navbar: ['/', '/get-started','/draft/test1'],
+  theme: plumeTheme({
+    logo: '/images/logo.png',
+    navbar: [
+      { text: "关于本站", link: "/about" }
+    ],
+    footer: { message: "", copyright: "Copyright © 2024-PRESENT 理解算法" }
   }),
 
   bundler: viteBundler(),
