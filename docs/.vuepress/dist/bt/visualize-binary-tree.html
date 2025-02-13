@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <style>
+        .tree-container {
+            position: relative;
+            min-height: 400px;
+            margin: 20px;
+        }
+
+        .node {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            border: 2px solid #4CAF50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            font-family: Arial;
+            transition: all 0.3s;
+        }
+
+        .line {
+            position: absolute;
+            background: #ccc;
+            transform-origin: top left;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <input type="text" id="treeInput" placeholder="输入数组，如：1,2,3,null,4" style="width: 300px">
+        <button onclick="drawTree()">生成二叉树</button>
+    </div>
+    <div id="treeContainer" class="tree-container"></div>
+
+    <script>
+        class TreeNode {
+            constructor(val) {
+                this.val = val;
+                this.left = null;
+                this.right = null;
+                this.x = 0;  // 节点横坐标
+                this.y = 0;  // 节点纵坐标
+            }
+        }
+        const NODE_RADIUS = 20;
+        const NODE_SPACE_HEIGHT = NODE_RADIUS * 4;
+        const NODE_SPACE_WIDTH = NODE_RADIUS * 1.5;
+
+        // 将数组转换为二叉树
+        function arrayToTree(arr) {
+            if (!arr || arr.length === 0) return null;
+
+            const root = new TreeNode(arr[0]);
+            const queue = [root];
+            let i = 1;
+
+            while (i < arr.length) {
+                const current = queue.shift();
+
+                if (arr[i] !== null && arr[i] !== undefined) {
+                    current.left = new TreeNode(arr[i]);
+                    queue.push(current.left);
+                }
+                i++;
+
+                if (i < arr.length && arr[i] !== null && arr[i] !== undefined) {
+                    current.right = new TreeNode(arr[i]);
+                    queue.push(current.right);
+                }
+                i++;
+            }
+            return root;
+        }
+
+        // 计算节点位置
+        function calculatePositions(root) {
+            let currentX = 0;  // 全局x坐标计数器
+            let maxDepth = 0;
+            function dfs(node, depth) {
+                if (!node) return;
+                if (depth > maxDepth) {
+                    maxDepth = depth;
+                }
+
+                // 遍历左子树
+                dfs(node.left, depth + 1);
+
+                // 分配当前节点位置
+                node.x = currentX * NODE_SPACE_WIDTH;  // 节点间的水平间距
+                node.y = depth * NODE_SPACE_HEIGHT;                   // 节点间的垂直间距
+                currentX++;                             // x坐标递增
+
+                // 遍历右子树
+                dfs(node.right, depth + 1);
+            }
+
+            dfs(root, 0, 0);
+            return { root, maxDepth };
+        }
+
+        function drawTree() {
+            const container = document.getElementById('treeContainer');
+            container.innerHTML = '';
+
+            const input = document.getElementById('treeInput').value.replace(/[\[\]]/g, '');
+            const arr = input.split(',').map(item => item.trim() === 'null' ? null : Number(item));
+
+            const root = arrayToTree(arr);
+            if (!root) return;
+
+            const { _, maxDepth } = calculatePositions(root);  // 调用改进版计算方法
+
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.style.width = '100%';
+            svg.style.height = '100%';
+            container.appendChild(svg);
+            container.style.height = `${(maxDepth + 1) * 100}px`;
+
+            function drawNode(node) {
+                if (!node) return;
+
+                const div = document.createElement('div');
+                div.className = 'node';
+                div.style.left = `${node.x}px`;
+                div.style.top = `${node.y}px`;
+                div.textContent = node.val;
+                container.appendChild(div);
+
+                [node.left, node.right].forEach(child => {
+                    if (child) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                        line.setAttribute('x1', node.x + NODE_RADIUS);
+                        line.setAttribute('y1', node.y + NODE_RADIUS * 2);
+                        line.setAttribute('x2', child.x + NODE_RADIUS);
+                        line.setAttribute('y2', child.y);
+                        line.setAttribute('stroke', '#ccc');
+                        line.setAttribute('stroke-width', '2');
+                        svg.appendChild(line);
+                    }
+                });
+
+                drawNode(node.left);
+                drawNode(node.right);
+            }
+
+            drawNode(root);
+        }
+
+    </script>
+</body>
+
+</html>
