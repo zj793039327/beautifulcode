@@ -21,6 +21,7 @@ config:
         title: 链表
         icon: akar-icons:link-chain
         details: 双向链表、合并、环等
+        link: /cs/link/index
       -  
         title: 二叉树
         icon: tabler:binary-tree

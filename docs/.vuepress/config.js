@@ -11,7 +11,12 @@ export default defineUserConfig({
     navbar: [
       { text: "关于本站", link: "/about" }
     ],
-    footer: { message: "", copyright: "Copyright © 2024-PRESENT 理解算法" }
+    footer: { message: "", copyright: "Copyright © 2024-PRESENT 理解算法" },
+    plugins: {
+      shiki: {
+        theme: { light: 'vitesse-light', dark: 'vitesse-dark' }, 
+      }
+    }
   }),
 
   bundler: viteBundler(),
