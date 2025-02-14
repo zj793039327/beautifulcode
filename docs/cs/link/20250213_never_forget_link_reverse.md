@@ -1,7 +1,7 @@
 ---
 title: "链表逆序，过目不忘"
 createTime: 2025/02/13 23:08:51
-author: jojo
+username: jojo
 permalink: /article/etynxshf/
 ---
 在算法的面试中，逆序是一个常见的主题。基于数组的逆序，基于链表的逆序，以及各种变种题目。
