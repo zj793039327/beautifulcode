@@ -10,6 +10,19 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
 
     <link rel="stylesheet" href="./piano.css">
+    <style>
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+    </style>
 </head>
 
 <body>
@@ -29,7 +42,13 @@
     <div class="ui container">
         <h2 class="ui header">实时展示音频HZ</h2>
 
-        <mic-toggle-button id="audio-button" style="font-size: 1.75rem;"></mic-toggle-button>
+        <div class="control-group">
+            <mic-toggle-button id="audio-button" style="font-size: 1.75rem;"></mic-toggle-button>
+            <div class="checkbox-wrapper">
+                <input type="checkbox" id="console-log-toggle">
+                <label for="console-log-toggle">显示控制台信息</label>
+            </div>
+        </div>
 
         <div id="rms" class="ui segment"
             style="width: 30rem; font-size: 4rem; color: #000000; text-align: center; display: grid; grid-template-columns: 50% 50%;">
