@@ -9,8 +9,7 @@
     <link rel="stylesheet" type="text/css"
         href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
 
-    <style>
-    </style>
+    <link rel="stylesheet" href="./piano.css">
 </head>
 
 <body>
@@ -20,10 +19,11 @@
     <script>
         exports = {};
     </script>
-    <script src="https://unpkg.com/ringbuf.js@0.1.0/dist/index.js" crossorigin="anonymous"></script> <!-- by Paul Adenot, repo: https://github.com/padenot/ringbuf.js -->
+    <script src="https://unpkg.com/ringbuf.js@0.1.0/dist/index.js" crossorigin="anonymous"></script>
+    <!-- by Paul Adenot, repo: https://github.com/padenot/ringbuf.js -->
 
     <script type="module" src="./main2.js">
-       
+
     </script>
 
     <div class="ui container">
@@ -39,17 +39,25 @@
         </div>
 
         <div id="req" class="ui segment"
-        style="width: 30rem; font-size: 4rem; color: #000000; text-align: center; display: grid; grid-template-columns: 50% 50%;">
-        <span id="freq-value">0</span> <span>Hz</span>
-        <!-- <input id="rms-value" type="text" style="min-width: 55%; text-align: right;" readonly>
+            style="width: 30rem; font-size: 4rem; color: #000000; text-align: center; display: grid; grid-template-columns: 50% 50%;">
+            <span id="freq-value">0</span> <span>Hz</span>
+            <!-- <input id="rms-value" type="text" style="min-width: 55%; text-align: right;" readonly>
     <span id="rms-units" class="ui basic label">dBFS</span> -->
-    </div>
+        </div>
 
         <div id="myLog" class="ui message">
             这是一条通知消息
         </div>
 
-
+        <div>
+            <h1>钢琴音高检测</h1>
+            <div id="sharedArrayBufferError" class="error-message">
+                您的浏览器不支持 SharedArrayBuffer，请使用最新版本的 Chrome 或 Edge 浏览器。
+            </div>
+            <div id="note-display">等待开始...</div>
+            <div id="frequency-display">频率: -- Hz</div>
+            <div class="piano-container" id="piano"></div>
+        </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

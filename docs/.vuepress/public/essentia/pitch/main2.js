@@ -52,6 +52,41 @@ const pianoKeys = {
     'C7': 2093.00, 'C#7': 2217.46, 'D7': 2349.32, 'D#7': 2489.02, 'E7': 2637.02, 'F7': 2793.83, 'F#7': 2959.96, 'G7': 3135.96, 'G#7': 3322.44, 'A7': 3520.00, 'A#7': 3729.31, 'B7': 3951.07,
     'C8': 4186.01
 };
+// 在文件开头添加钢琴键盘绘制函数
+function createPianoKeyboard() {
+    const pianoContainer = document.getElementById('piano');
+    const notes = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const octaves = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+    
+    octaves.forEach(octave => {
+        notes.forEach((note, index) => {
+            const key = document.createElement('div');
+            key.className = `piano-key ${note.includes('#') ? 'black' : ''}`;
+            key.dataset.note = `${note}${octave}`;
+            
+            // 添加音符标签
+            const noteLabel = document.createElement('div');
+            noteLabel.className = 'note-label';
+            noteLabel.textContent = note;
+            key.appendChild(noteLabel);
+            
+            // 添加八度标签
+            if (note === 'C') {
+                const octaveLabel = document.createElement('div');
+                octaveLabel.className = 'octave-label';
+                octaveLabel.textContent = octave;
+                key.appendChild(octaveLabel);
+            }
+            
+            pianoContainer.appendChild(key);
+        });
+    });
+}
+
+// 在页面加载完成后创建钢琴键盘
+document.addEventListener('DOMContentLoaded', () => {
+    createPianoKeyboard();
+});
 
 // 计算最接近的音符
 function findClosestNote(frequency) {
