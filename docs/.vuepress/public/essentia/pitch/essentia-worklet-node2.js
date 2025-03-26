@@ -14,31 +14,26 @@ function URLFromFiles(files) {
 
 }
 
-// const workletProcessorCode = [
-//     "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.es.min.js",
-//     "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.es.js",
-//     "essentia-worklet-processor1.js"
-// ];
+const workletProcessorCode = [
+    "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia-wasm.umd.js",
+    "https://cdn.jsdelivr.net/npm/essentia.js@0.1.3/dist/essentia.js-core.umd.js",
+    "pitchyinprob-processor.js",
+    "https://unpkg.com/ringbuf.js@0.1.0/dist/index.js"];
 
-const workletProcessorCode = ["https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia-wasm.module.js",
-    "https://cdn.jsdelivr.net/npm/essentia.js@0.1.0/dist/essentia.js-core.es.js",
-    "../essentia-worklet-processor1.js"];
-
-
-export async function createEssentiaNode(context) {
+export async function createEssentiaNode(context, bufferSize) {
     class EssentiaNode extends AudioWorkletNode {
         constructor(context) {
-            super(context, 'essentia-worklet-processor1', {
-                outputChannelCount: [1]
+            super(context, 'pitchyinprob-processor', {
+                // outputChannelCount: [1],
+                processorOptions: {
+                    bufferSize: bufferSize,
+                    sampleRate: context.sampleRate,
+                }
             });
-            // 添加算法容器
-            this.algorithms = {};
         }
-       
     }
 
     try {
-        debugger;
         let concatenatedCode = await URLFromFiles(workletProcessorCode);
         await context.audioWorklet.addModule(concatenatedCode);
     } catch (e) {

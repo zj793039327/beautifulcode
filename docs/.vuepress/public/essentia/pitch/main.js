@@ -1,4 +1,4 @@
-import { createEssentiaNode } from "./essentia-worklet-node1.js";
+import { createEssentiaNode } from "./essentia-worklet-node2.js";
 import { Smoother } from "./tools.js";
 
 let audioContext;
@@ -34,8 +34,7 @@ const audioButton = document.querySelector("#audio-button");
 audioButton.addEventListener('click', function () {
     if (!isRecording) {
         audioContext = audioButton.audio.ctx;
-        startEssentiaAnalyser(audioContext)
-        .then(() => console.logToScreen('essentia analyzer started'));
+        startEssentiaAnalyser(audioContext).then(() => console.logToScreen('essentia analyzer started'));
         return;
     } else {
         gumStream.getAudioTracks().forEach((track) => {

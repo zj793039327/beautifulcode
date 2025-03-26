@@ -1,4 +1,18 @@
-let essentia = new Essentia(Module); // where Module is EssentiaWASM object when concatenated to this code by URLFromFiles
+// 等待 Essentia.js 加载完成
+let essentia = null;
+
+// 初始化 Essentia.js
+async function initEssentia() {
+    if (!essentia) {
+        // 等待 Module 对象可用
+        while (typeof Module === 'undefined') {
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+        essentia = new Essentia(Module);
+        console.log('Essentia.js initialized:', essentia.version);
+    }
+    return essentia;
+}
 
 /**
  * A simple demonstration of using essentia.js wasm  Modules as AudioWorkletProcessor.
@@ -12,8 +26,7 @@ class EssentiaWorkletProcessor extends AudioWorkletProcessor {
    */
   constructor() {
     super();
-    this.essentia = essentia;
-    console.log('Backend - essentia:' + this.essentia.version + '- http://essentia.upf.edu'); 
+    this.initialized = false;
   }
   /**
    * System-invoked process callback function.
@@ -22,29 +35,46 @@ class EssentiaWorkletProcessor extends AudioWorkletProcessor {
    * @param  {Object} parameters AudioParam data.
    * @return {Boolean} Active source flag.
    */
-  process(inputs, outputs, parameters) {
+  async process(inputs, outputs, parameters) {
+    if (!this.initialized) {
+      try {
+        this.essentia = await initEssentia();
+        this.initialized = true;
+        console.log('AudioWorklet processor initialized');
+      } catch (error) {
+        console.error('Error initializing Essentia:', error);
+        return true;
+      }
+    }
 
-    let input = inputs[0];
-    let output = outputs[0];
+    const input = inputs[0];
+    const output = outputs[0];
 
-    // Write your essentia.js processing code here
-    
-    // convert the input audio frame array from channel 0 to a std::vector<float> type for using it in essentia
-    let vectorInput = this.essentia.arrayToVector(input[0]);
+    if (!input || !input[0]) {
+      return true;
+    }
 
-    // In this case we compute the Root Mean Square of every input audio frame
-    // check https://mtg.github.io/essentia.js/docs/api/Essentia.html#RMS 
-    let rmsFrame = this.essentia.RMS(vectorInput) // input audio frame
+    try {
+      // 将输入音频转换为 Essentia 可用的格式
+      const vectorInput = this.essentia.arrayToVector(input[0]);
+      
+      // 计算音高
+      const pitchResult = this.essentia.PitchYinFFT(vectorInput);
+      
+      // 将结果存储到 algorithms 对象中
+      this.algorithms = {
+        PitchYinFFT: pitchResult.pitch
+      };
+      
+      // 输出处理后的音频（这里我们直接传递输入）
+      output[0].set(input[0]);
+      
+    } catch (error) {
+      console.error('Error in audio processing:', error);
+    }
 
-    // console.log("Processed audio buffer stream using essentia.js worklet with size: " + outputArray.length + " frames.");
-
-    output[0][0] = rmsFrame.rms;
-
-    
     return true;
   }
-
-
 }
 
 registerProcessor('essentia-worklet-processor1', EssentiaWorkletProcessor);
