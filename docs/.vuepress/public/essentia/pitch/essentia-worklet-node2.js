@@ -7,6 +7,7 @@ function URLFromFiles(files) {
     return Promise
         .all(promises)
         .then((texts) => {
+            texts.unshift("var exports = {};"); // hack to make injected umd modules work
             const text = texts.join('');
             const blob = new Blob([text], { type: "application/javascript" });
             return URL.createObjectURL(blob);

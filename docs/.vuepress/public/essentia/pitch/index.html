@@ -3,6 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Cross-Origin-Opener-Policy" content="same-origin">
+    <meta http-equiv="Cross-Origin-Embedder-Policy" content="require-corp">
     <title>实时声音 Hz 展示</title>
     <link rel="stylesheet" type="text/css"
         href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css" />
@@ -15,8 +17,12 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.js"></script>
     <script src="../mic-toggle-button.js"></script>
+    <script>
+        exports = {};
+    </script>
+    <script src="https://unpkg.com/ringbuf.js@0.1.0/dist/index.js" crossorigin="anonymous"></script> <!-- by Paul Adenot, repo: https://github.com/padenot/ringbuf.js -->
 
-    <script type="module" src="./main.js">
+    <script type="module" src="./main2.js">
        
     </script>
 
@@ -34,7 +40,7 @@
 
         <div id="req" class="ui segment"
         style="width: 30rem; font-size: 4rem; color: #000000; text-align: center; display: grid; grid-template-columns: 50% 50%;">
-        <span id="req-value">0</span> <span>Hz</span>
+        <span id="freq-value">0</span> <span>Hz</span>
         <!-- <input id="rms-value" type="text" style="min-width: 55%; text-align: right;" readonly>
     <span id="rms-units" class="ui basic label">dBFS</span> -->
     </div>

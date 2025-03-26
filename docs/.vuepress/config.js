@@ -19,5 +19,5 @@ export default defineUserConfig({
     }
   }),
 
-  bundler: viteBundler(),
+  bundler: viteBundler()
 })
